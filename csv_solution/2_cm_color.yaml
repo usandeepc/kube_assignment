@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  color: Orange
+kind: ConfigMap
+metadata:
+  name: cm-border
+  namespace: csvserver

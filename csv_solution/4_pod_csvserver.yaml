@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: csvserver
+  namespace: csvserver
+  labels:
+    app: csvserver
+spec:
+  containers:
+  - name: csvserver
+    image: infracloudio/csvserver:latest
+    volumeMounts:
+    - name: shared
+      mountPath: "/csvserver/inputdata"
+      subPath: inputdata
+    env:
+     - name: CSVSERVER_BORDER
+       valueFrom:
+         configMapKeyRef:
+            name: cm-border
+            key: color
+    ports:
+    - containerPort: 9300
+  initContainers:
+  - name: wget-for-csvserver
+    image: cirrusci/wget:latest
+    command: ['wget','-O','/shared/gencsv.sh','https://raw.githubusercontent.com/usandeepc/random-scripts/master/gencsv.sh']
+    volumeMounts:
+    - name: shared
+      mountPath: "/shared"
+  - name: chmod-for-csvserver
+    image: bash:latest
+    command: ['chmod','+x','/shared/gencsv.sh']
+    volumeMounts:
+    - name: shared
+      mountPath: "/shared"
+  - name: bash-for-csvserver
+    image: bash:latest
+    command: ['bash','-c','/shared/gencsv.sh']
+    volumeMounts:
+    - name: shared
+      mountPath: "/shared"
+  volumes:
+  - name: shared
+    emptyDir: {}
+  - name: gencsv-config-volume
+    configMap:
+       name: cm-gencsv
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: csvserver
+  name: csvserver-service
+  namespace: csvserver
+spec:
+  ports:
+  - port: 9393
+    protocol: TCP
+    targetPort: 9300
+  selector:
+    app: csvserver
+  type: LoadBalancer
+

@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-ds
+  labels:
+    k8s-app: nginx-ds
+    app: nginx
+spec:
+  selector: # Selector
+    matchLabels: 
+      name: nginx-ds
+  template: # Pod Template
+    metadata:
+      labels:
+        name: nginx-ds
+        app: nginx
+    spec:
+      containers: # Container Details
+      - name: nginx-ds
+        image: nginx
